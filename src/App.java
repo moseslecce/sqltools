@@ -6,8 +6,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 
-import com.mysql.cj.jdbc.DatabaseMetaData;
-
 public class App {
     static final String DB_URL = "jdbc:mysql://newlab/aberrant?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
     static final String DB_DRV = "com.mysql.cj.jdbc.Driver";
@@ -20,6 +18,20 @@ public class App {
         Statement stmt = null;
         ResultSet rs = null;
 
+
+        /*
+        // SSH Tunnel
+        JSch jsch = new JSch();
+        //jsch.addIdentity("~/.ssh/id_rsa");
+        Session session = jsch.getSession(jumpserverUsername, jumpserverHost);
+        session.connect();
+
+        // Forward randomly chosen local port through the SSH channel to database host/port
+        int forwardedPort = session.setPortForwardingL(0, databaseHost, databasePort);
+
+        String url = "jdbc:mysql://localhost:" + forwardedPort;
+        */
+
         try {
             conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWD);
 
@@ -29,11 +41,12 @@ public class App {
             // DatabaseMetaData meta = (DatabaseMetaData) conn.getMetaData();
             // rs = meta.getTables(null, null, null, new String[] {"TABLE"});
 
+            /*
             Database db = Database.populateFromMetaData((DatabaseMetaData) conn.getMetaData());
-
             System.out.println("Tables in the database:");
             for (String str : db.getTables())
                 System.out.println(str);
+            */
 
             /*
              * int count = 0; System.out.println("All table names are in test database:");
@@ -48,9 +61,8 @@ public class App {
              * System.out.println("SQL Code: "+rs.getString(2)); }
              */
 
-            rs = stmt.executeQuery("select * from balances limit 1;");
+            rs = stmt.executeQuery("select * from players limit 1;");
             ResultSetMetaData tableMd = rs.getMetaData();
-
             Table t = Table.populateFromMetaData(tableMd);
             System.out.println("Table Name : " + t.getName());
             // System.out.println("Table Name : " + tableMd.getTableName(2));
@@ -67,9 +79,18 @@ public class App {
                 String key = entry.getKey();
                 Field field = entry.getValue();
                 System.out.print(key + " \t");
-                System.out.print(field.getDisplaySize() + "\t");
+                //System.out.print(field.getDisplaySize() + "\t");
+                System.out.print(field.getPrecision() + "\t");
+                System.out.print(field.getScale() + "\t");
                 System.out.println(field.getTypeName());
             }
+
+            Table t2 = Table.populateFromName("whitelist", conn);
+
+            TableDiff tdiff = TableCompare.compare(t,t2);
+
+            CompareStatement cs = new CompareStatement(tdiff);
+            System.out.println(cs.getSQL());
 
         } catch (SQLException ex) {
             // handle any errors
