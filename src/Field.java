@@ -114,10 +114,11 @@ public class Field {
 		Field f = (Field) o;
 		return f.getScale() == this.getScale() 
 			&& f.getPrecision() == this.getPrecision() 
-			&& f.getDefaultValue() == this.getDefaultValue() 
+			//&& f.getDefaultValue().equals(this.getDefaultValue()) 
+			&& ((f.getDefaultValue() == null && f.getDefaultValue() == this.getDefaultValue()) || (f.getDefaultValue().equals(this.getDefaultValue()))) 
 			&& f.getCharacterMaxLen() == this.getCharacterMaxLen() 
-			&& f.getTypeName().equals(this.getTypeName()) && 
-			((f.getCollation() == null && f.getCollation() == this.getCollation()) || (f.getCollation().equals(this.getCollation()))
+			&& f.getTypeName().equals(this.getTypeName()) 
+			&& ((f.getCollation() == null && f.getCollation() == this.getCollation()) || (f.getCollation().equals(this.getCollation()))
 			);
 	}
 }

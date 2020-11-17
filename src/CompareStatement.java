@@ -83,9 +83,12 @@ public class CompareStatement {
 
 		output.write(columnName);
 		output.write("` ");
-		output.write("`");
-		output.write(columnName);
-		output.write("` ");
+		if (operation == "CHANGE")
+		{
+			output.write("`");
+			output.write(columnName);
+			output.write("` ");
+		}
 
 		/*
 		output.write(fieldType);
@@ -117,7 +120,9 @@ public class CompareStatement {
 			output.write(" ");
 		}
 
-		if (!isNullable)
+		if (isNullable)
+			output.write("NULL ");
+		else
 			output.write("NOT NULL ");
 		
 		if (defaultValue != null)
