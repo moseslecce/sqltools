@@ -12,6 +12,8 @@ public class CompareStatement {
 	public String getSQL() throws IOException
 	{
 		StringWriter output = new StringWriter();
+
+		output.write("/* Alter table in destination */\n");
 		output.write("ALTER TABLE `");
 		output.write(this.tableDiff.getTableName());
 		output.write("` \n");
@@ -44,6 +46,22 @@ public class CompareStatement {
 			output.write(" ");
 		}
 
+		if (this.tableDiff.getCollation() != null)
+		{
+			output.write("DEFAULT CHARSET='");
+			output.write("utf8"); //TODO: Figure out where this should come from.
+			output.write("', COLLATE ='");
+			output.write(this.tableDiff.getCollation());
+			output.write("' ");
+		}
+
+		if (this.tableDiff.getEngine() != null)
+		{
+			output.write("ENGINE='");			
+			output.write(this.tableDiff.getEngine());
+			output.write("' ");
+		}
+
 		output.write(";");
 
 		String string = output.toString();
@@ -53,14 +71,13 @@ public class CompareStatement {
 
 	private void addColumn(StringWriter output, Field field, String operation)
 	{
-		String afterField = null;
 		String collation = null;
-
-		this._addColumn(output, field.getName(), field.getColumnType(), field.getTypeName(), field.getPrecision(), field.getScale(), field.isNullable(), field.getDefaultValue(), afterField, collation, field.isUnsigned(), operation);
+		this._addColumn(output, field.getName(), field.getColumnType(), field.getTypeName(), field.getPrecision(), field.getScale(), field.isNullable(), field.getDefaultValue(), field.getAfterField(), collation, field.isUnsigned(), operation);
 	}
 
 	private void _addColumn(StringWriter output, String columnName, String columnType, String fieldType, Integer precision, Integer scale, boolean isNullable, String defaultValue, String afterField, String collation, boolean unsigned, String operation)
-	{	
+	{
+		output.write("\t");
 		if (operation == "CHANGE")
 		{
 			output.write("CHANGE `");

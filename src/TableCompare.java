@@ -9,10 +9,13 @@ public class TableCompare {
 		if (td.getAutoIncrement() != srcTable.getAutoIncrement())
 			td.setAutoIncrement(srcTable.getAutoIncrement());
 
-		if (!td.getEngine().equals(srcTable.getEngine()))
-			td.setEngine(srcTable.getEngine());
+		if (!destTable.getEngine().equals(srcTable.getEngine()))
+			destTable.setEngine(srcTable.getEngine());
 
-		if (!td.getCollation().equals(srcTable.getCollation()))
+		System.out.println("Src collation: " + srcTable.getCollation());
+		System.out.println("Dest collation: " + destTable.getCollation());
+
+		if (!destTable.getCollation().equals(srcTable.getCollation()))
 			td.setCollation(srcTable.getCollation());
 
 		Map<String, Field> fields = srcTable.getFields();

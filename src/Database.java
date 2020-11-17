@@ -48,8 +48,10 @@ public class Database
 			while (rs2.next()) {
 				//String tblName = rs2.getString("TABLE_NAME");
 				//Table t = tables.get(tblName);
-				t.updateFromRS(rs2);
+				t.addFieldFromRS(rs2);
 			}
+
+			t.populatePositions();
 		}
 		catch (SQLException sqle)
 		{

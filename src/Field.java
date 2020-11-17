@@ -10,12 +10,15 @@ public class Field {
 	private Integer characterMaxLen = null;
 	private boolean isNullable;
 	private String colDefault = null;
+	private Integer position = null;
+	private String afterField = null;
 
-	public Field(String name, String columnType, String typeName, Integer precision, Integer scale, Integer characterMaxLen, boolean isNullable, String colDefault) {
+	public Field(String name, Integer position, String columnType, String typeName, Integer precision, Integer scale, Integer characterMaxLen, boolean isNullable, String colDefault) {
 		this.name = name;
 		this.typeName = typeName;
 		this.columnType = columnType;
 		this.characterMaxLen = characterMaxLen;
+		this.position = position;
 
 		if (precision > 0)
 			this.precision = precision;
@@ -32,8 +35,13 @@ public class Field {
 		return new Field(tableMd.getColumnName(columnPos), tableMd.getColumnType(columnPos), tableMd.getColumnTypeName(columnPos), tableMd.getPrecision(columnPos), tableMd.getScale(columnPos), tableMd.isNullable(columnPos) != ResultSetMetaData.columnNoNulls);
 	}*/
 
+	public Integer getPosition()
+	{
+		return this.position;
+	}
+
 	public static Field populateFromRS(ResultSet rs) throws SQLException {
-		return new Field(rs.getString("COLUMN_NAME"), rs.getString("COLUMN_TYPE"), rs.getString("DATA_TYPE"), rs.getInt("NUMERIC_PRECISION"), rs.getInt("NUMERIC_SCALE"), rs.getInt("CHARACTER_MAXIMUM_LENGTH"), rs.getString("IS_NULLABLE").equals("YES"), rs.getString("COLUMN_DEFAULT"));
+		return new Field(rs.getString("COLUMN_NAME"), rs.getInt("ORDINAL_POSITION"), rs.getString("COLUMN_TYPE"), rs.getString("DATA_TYPE"), rs.getInt("NUMERIC_PRECISION"), rs.getInt("NUMERIC_SCALE"), rs.getInt("CHARACTER_MAXIMUM_LENGTH"), rs.getString("IS_NULLABLE").equals("YES"), rs.getString("COLUMN_DEFAULT"));
 	}
 
 	public String getName()
@@ -59,7 +67,7 @@ public class Field {
 		return this.colDefault;
 	}
 
-	//@TODO: Implement me.
+	//TODO: Implement me.
 	public boolean isUnsigned() {
 		return false;
 	}
@@ -74,6 +82,15 @@ public class Field {
 
 	public Integer getCharacterMaxLen() {
 		return this.characterMaxLen;
+	}
+
+	public void setAfterField(String val) {
+		this.afterField = val;
+	}
+
+	public String getAfterField()
+	{
+		return this.afterField;
 	}
 
 	@Override
