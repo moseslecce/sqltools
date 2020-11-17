@@ -30,6 +30,12 @@ public class CompareStatement {
 			output.write(",\n");
 		}
 		
+		for (Field extra : this.tableDiff.getExtraFields())
+		{
+			this.addColumn(output, extra, "DROP");
+			output.write(",\n");			
+		}
+
 		output.write(";");
 
 		String string = output.toString();

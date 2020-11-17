@@ -8,7 +8,7 @@ public class TableCompare {
 
 		Map<String, Field> fields = srcTable.getFields();
 
-		for (Map.Entry<String, Field> entry : fields.entrySet()) 
+		for (Map.Entry<String, Field> entry : fields.entrySet())
 		{
 			String key = entry.getKey();
 			Field field = entry.getValue();
@@ -26,10 +26,14 @@ public class TableCompare {
 				// the field doesn't exist in the dest, so we need to add it.
 				td.addMissingField(field);
 			}
+		}
 
-			System.out.print(key + " \t");
-			System.out.print(field.getDisplaySize() + "\t");
-			System.out.println(field.getTypeName());
+		for (Map.Entry<String, Field> entry : destTable.getFields().entrySet())
+		{
+			String key = entry.getKey();
+			Field field = entry.getValue();
+			if (!srcTable.hasField(key))
+				td.addExtraFields(field);
 		}
 
 		return td;
