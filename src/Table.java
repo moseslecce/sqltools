@@ -108,7 +108,7 @@ public class Table {
 			Field f = entry.getValue();
 
 			int prevPos = f.getPosition() - 1;
-			if (prevPos > 1)
+			if (prevPos >= 1)
 			{
 				Field afterField = this.positions.get(prevPos);
 				if (afterField != null)

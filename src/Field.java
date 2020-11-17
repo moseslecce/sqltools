@@ -12,22 +12,25 @@ public class Field {
 	private String colDefault = null;
 	private Integer position = null;
 	private String afterField = null;
+	private String collation = null;
 
-	public Field(String name, Integer position, String columnType, String typeName, Integer precision, Integer scale, Integer characterMaxLen, boolean isNullable, String colDefault) {
+	public Field(String name, Integer position, String columnType, String typeName, Integer precision, Integer scale, Integer characterMaxLen, boolean isNullable, String colDefault, String collation, String afterField) {
 		this.name = name;
 		this.typeName = typeName;
 		this.columnType = columnType;
 		this.characterMaxLen = characterMaxLen;
 		this.position = position;
 
-		if (precision > 0)
+		if (precision != null && precision > 0)
 			this.precision = precision;
 
-		if (scale > 0)
+		if (scale != null && scale > 0)
 			this.scale = scale;
 
 		this.isNullable = isNullable;
 		this.colDefault = colDefault;
+		this.collation = collation;
+		this.afterField = afterField;
 	}
 
 	/*
@@ -41,7 +44,7 @@ public class Field {
 	}
 
 	public static Field populateFromRS(ResultSet rs) throws SQLException {
-		return new Field(rs.getString("COLUMN_NAME"), rs.getInt("ORDINAL_POSITION"), rs.getString("COLUMN_TYPE"), rs.getString("DATA_TYPE"), rs.getInt("NUMERIC_PRECISION"), rs.getInt("NUMERIC_SCALE"), rs.getInt("CHARACTER_MAXIMUM_LENGTH"), rs.getString("IS_NULLABLE").equals("YES"), rs.getString("COLUMN_DEFAULT"));
+		return new Field(rs.getString("COLUMN_NAME"), rs.getInt("ORDINAL_POSITION"), rs.getString("COLUMN_TYPE"), rs.getString("DATA_TYPE"), rs.getInt("NUMERIC_PRECISION"), rs.getInt("NUMERIC_SCALE"), rs.getInt("CHARACTER_MAXIMUM_LENGTH"), rs.getString("IS_NULLABLE").equals("YES"), rs.getString("COLUMN_DEFAULT"), rs.getString("COLLATION_NAME"), null);
 	}
 
 	public String getName()
@@ -65,6 +68,10 @@ public class Field {
 
 	public String getDefaultValue() {
 		return this.colDefault;
+	}
+
+	public String getCollation() {
+		return this.collation;
 	}
 
 	//TODO: Implement me.
@@ -94,7 +101,7 @@ public class Field {
 	}
 
 	@Override
-    public boolean equals(Object o) { 
+    public boolean equals(Object o) {
 		// If the object is compared with itself then return true   
         if (o == this) { 
             return true; 
@@ -105,6 +112,12 @@ public class Field {
 		}
 		
 		Field f = (Field) o;
-		return f.getScale() == this.getScale() && f.getPrecision() == this.getPrecision() && f.getDefaultValue() == this.getDefaultValue() && f.getCharacterMaxLen() == this.getCharacterMaxLen() && f.getTypeName().equals(this.getTypeName());
+		return f.getScale() == this.getScale() 
+			&& f.getPrecision() == this.getPrecision() 
+			&& f.getDefaultValue() == this.getDefaultValue() 
+			&& f.getCharacterMaxLen() == this.getCharacterMaxLen() 
+			&& f.getTypeName().equals(this.getTypeName()) && 
+			((f.getCollation() == null && f.getCollation() == this.getCollation()) || (f.getCollation().equals(this.getCollation()))
+			);
 	}
 }

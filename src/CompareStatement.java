@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Map;
 
 public class CompareStatement {
 	private TableDiff tableDiff;
@@ -19,25 +20,12 @@ public class CompareStatement {
 		output.write("` \n");
 		//this.addColumn(output, "my_field", "DECIMAL", "18,4", true, "0.0000","other_field","utf8_general_ci",true,"CHANGE");		
 
-		for(Field missing : this.tableDiff.getMissingFields())
+		for (Map.Entry<Integer,DiffField> entry : this.tableDiff.getFields().entrySet())
 		{
-			//this.addColumn(output, "field2", "INT", "11", true, "123","my_field",null,true,"ADD");
-			this.addColumn(output, missing, "ADD");
+			DiffField field = entry.getValue();
+			this.addColumn(output, field, field.getOperation());
 			output.write(",\n");
 		}
-
-		for (Field diff : this.tableDiff.getDifferentFields())
-		{
-			this.addColumn(output, diff, "CHANGE");
-			output.write(",\n");
-		}
-		
-		for (Field extra : this.tableDiff.getExtraFields())
-		{
-			this.addColumn(output, extra, "DROP");
-			output.write(",\n");			
-		}
-
 
 		if (this.tableDiff.getAutoIncrement() != null)
 		{
@@ -71,8 +59,7 @@ public class CompareStatement {
 
 	private void addColumn(StringWriter output, Field field, String operation)
 	{
-		String collation = null;
-		this._addColumn(output, field.getName(), field.getColumnType(), field.getTypeName(), field.getPrecision(), field.getScale(), field.isNullable(), field.getDefaultValue(), field.getAfterField(), collation, field.isUnsigned(), operation);
+		this._addColumn(output, field.getName(), field.getColumnType(), field.getTypeName(), field.getPrecision(), field.getScale(), field.isNullable(), field.getDefaultValue(), field.getAfterField(), field.getCollation(), field.isUnsigned(), operation);
 	}
 
 	private void _addColumn(StringWriter output, String columnName, String columnType, String fieldType, Integer precision, Integer scale, boolean isNullable, String defaultValue, String afterField, String collation, boolean unsigned, String operation)
@@ -143,6 +130,7 @@ public class CompareStatement {
 
 			if (!defaultValue.equals("NULL"))
 				output.write("'");
+
 			output.write(" ");
 		}
 

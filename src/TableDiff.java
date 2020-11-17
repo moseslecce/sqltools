@@ -1,20 +1,18 @@
-import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class TableDiff {
 
-	private ArrayList<Field> missingFields;
-	private ArrayList<Field> differentFields;
-	private ArrayList<Field> extraFields;
 	private String tableName;
 	private Integer autoIncrement;
 	private String engine;
 	private String collation;
+	private Map<Integer,DiffField> fields; // sorted by the position.
 	
 	public TableDiff(String tableName)
 	{
-		this.missingFields = new ArrayList<>();
-		this.differentFields = new ArrayList<>();
-		this.extraFields = new ArrayList<>();
+		this.fields = new TreeMap<>();
+
 		this.tableName = tableName;
 		this.autoIncrement = null;
 		this.engine = null;
@@ -38,35 +36,26 @@ public class TableDiff {
 
 	public void addMissingField(Field field) 
 	{
-		this.missingFields.add(field);
+		this.fields.put(field.getPosition(), new DiffField(field,"ADD"));
 	}
 
 	public void addDifferentField(Field field)
 	{
-		this.differentFields.add(field);
+		this.fields.put(field.getPosition(), new DiffField(field,"CHANGE"));
 	}
 
 	public void addExtraFields(Field field)
 	{
-		this.extraFields.add(field);
+		this.fields.put(field.getPosition(), new DiffField(field,"DROP"));
 	}
 
-	public ArrayList<Field> getMissingFields()
+	public Map<Integer,DiffField> getFields()
 	{
-		return this.missingFields;
+		return this.fields;
 	}
 
 	public String getTableName() {
 		return this.tableName;
-	}
-
-	public ArrayList<Field> getDifferentFields() 
-	{
-		return this.differentFields;
-	}
-
-	public ArrayList<Field> getExtraFields() {
-		return this.extraFields;
 	}
 
 	public Integer getAutoIncrement() {
