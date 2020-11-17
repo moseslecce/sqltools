@@ -1,10 +1,7 @@
-import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.sql.Statement;
 
 public class Table {
 	private String name;
@@ -13,6 +10,12 @@ public class Table {
 	public Table(String name, Map<String,Field> fields) {
 		this.name = name;
 		this.fields = fields;
+	}
+
+	public Table(String name, Field field) {
+		this.name = name;
+		this.fields = new HashMap<>();
+		this.fields.put(field.getName(), field);
 	}
 
 	public String getName() {
@@ -28,6 +31,7 @@ public class Table {
 		return this.fields;
 	}
 
+	/*
 	public static Table populateFromMetaData(ResultSetMetaData tableMd) throws SQLException {
 		int numFields = tableMd.getColumnCount();
 		Map<String,Field> fields = new HashMap<>();
@@ -44,7 +48,7 @@ public class Table {
 		ResultSet rs = stmt.executeQuery("select * from " + name + " limit 1;");
 		ResultSetMetaData tableMd = rs.getMetaData();
 		return Table.populateFromMetaData(tableMd);
-	}
+	}*/
 
 	public boolean hasField(String key) 
 	{
@@ -56,5 +60,16 @@ public class Table {
 
 	public Field getField(String key) {
 		return this.fields.get(key);
+	}
+
+	public static Table populateFromRS(ResultSet rs) throws SQLException {
+
+		return new Table(rs.getString("TABLE_NAME"),Field.populateFromRS(rs));
+	}
+
+	public void updateFromRS(ResultSet rs) throws SQLException 
+	{
+		Field f = Field.populateFromRS(rs);
+		this.fields.put(f.getName(), f);
 	}
 }

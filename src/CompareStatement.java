@@ -48,10 +48,10 @@ public class CompareStatement {
 		String afterField = null;
 		String collation = null;
 
-		this._addColumn(output, field.getName(), field.getTypeName(), field.getPrecision(), field.getScale(), field.isNullable(), field.getDefaultValue(), afterField, collation, field.isUnsigned(), operation);
+		this._addColumn(output, field.getName(), field.getColumnType(), field.getTypeName(), field.getPrecision(), field.getScale(), field.isNullable(), field.getDefaultValue(), afterField, collation, field.isUnsigned(), operation);
 	}
 
-	private void _addColumn(StringWriter output, String columnName, String fieldType, Integer precision, Integer scale, boolean isNullable, String defaultValue, String afterField, String collation, boolean unsigned, String operation)
+	private void _addColumn(StringWriter output, String columnName, String columnType, String fieldType, Integer precision, Integer scale, boolean isNullable, String defaultValue, String afterField, String collation, boolean unsigned, String operation)
 	{	
 		if (operation == "CHANGE")
 		{
@@ -74,6 +74,8 @@ public class CompareStatement {
 		output.write("`");
 		output.write(columnName);
 		output.write("` ");
+
+		/*
 		output.write(fieldType);
 		output.write(" ");
 
@@ -88,7 +90,10 @@ public class CompareStatement {
 			}
 
 			output.write(") ");
-		}
+		}*/
+
+		output.write(columnType);
+		output.write(" ");
 
 		if (unsigned)
 			output.write("UNSIGNED ");
