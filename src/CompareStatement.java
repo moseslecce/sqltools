@@ -36,6 +36,14 @@ public class CompareStatement {
 			output.write(",\n");			
 		}
 
+
+		if (this.tableDiff.getAutoIncrement() != null)
+		{
+			output.write("AUTO_INCREMENT=");
+			output.write(String.valueOf(this.tableDiff.getAutoIncrement()));
+			output.write(" ");
+		}
+
 		output.write(";");
 
 		String string = output.toString();
@@ -111,7 +119,13 @@ public class CompareStatement {
 		if (defaultValue != null)
 		{
 			output.write("DEFAULT ");
+			if (!defaultValue.equals("NULL"))
+				output.write("'");
+			
 			output.write(defaultValue);
+
+			if (!defaultValue.equals("NULL"))
+				output.write("'");
 			output.write(" ");
 		}
 
@@ -122,5 +136,5 @@ public class CompareStatement {
 			output.write(afterField);
 			output.write("` ");
 		}
-	}	
+	}
 }

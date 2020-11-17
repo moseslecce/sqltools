@@ -6,6 +6,9 @@ public class TableDiff {
 	private ArrayList<Field> differentFields;
 	private ArrayList<Field> extraFields;
 	private String tableName;
+	private Integer autoIncrement;
+	private String engine;
+	private String collation;
 	
 	public TableDiff(String tableName)
 	{
@@ -13,6 +16,24 @@ public class TableDiff {
 		this.differentFields = new ArrayList<>();
 		this.extraFields = new ArrayList<>();
 		this.tableName = tableName;
+		this.autoIncrement = null;
+		this.engine = null;
+		this.collation = null;
+	}
+
+	public void setEngine(String val)
+	{
+		this.engine = val;
+	}
+
+	public void setCollation(String val)
+	{
+		this.collation = val;
+	}
+
+	public void setAutoIncrement(Integer val)
+	{
+		this.autoIncrement = val;
 	}
 
 	public void addMissingField(Field field) 
@@ -46,5 +67,17 @@ public class TableDiff {
 
 	public ArrayList<Field> getExtraFields() {
 		return this.extraFields;
+	}
+
+	public Integer getAutoIncrement() {
+		return this.autoIncrement;
+	}
+
+	public String getEngine() {
+		return this.engine;
+	}
+
+	public String getCollation() {
+		return this.collation;
 	}
 }

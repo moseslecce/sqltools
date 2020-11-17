@@ -17,29 +17,38 @@ public class Database
 	public Database(String dbUrl, String dbUser, String dbPasswd, String dbName) throws SQLException {
 
 		this.tables = new HashMap<>();
+
 		Connection conn = null;
-		ResultSet rs = null;
-		PreparedStatement stmt = null;
+		ResultSet rs2 = null;
+		PreparedStatement stmt2 = null;
+
+		ResultSet rs1 = null;
+		PreparedStatement stmt1 = null;
 
 		try
 		{
 			conn = DriverManager.getConnection(dbUrl, dbUser, dbPasswd);
-			//Statement stmt = conn.createStatement();
-			stmt = conn.prepareStatement("select * from INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA=?");
-			stmt.setString(1, dbName);
-			rs = stmt.executeQuery();
 
-			while (rs.next()) {
-				String tblName = rs.getString("TABLE_NAME");				
-				if (this.tables.get(tblName) == null)
-				{
-					this.tables.put(tblName, Table.populateFromRS(rs));
-				}
-				else
-				{
-					Table t = tables.get(tblName);
-					t.updateFromRS(rs);
-				}
+			stmt1 = conn.prepareStatement("select * from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA=?");
+			stmt1.setString(1, dbName);
+			rs1 = stmt1.executeQuery();
+
+			Table t = null;
+			if (rs1.next())
+			{
+				t = Table.populateFromRS(rs1);
+				this.tables.put(t.getName(), t);
+			}			
+			
+			
+			stmt2 = conn.prepareStatement("select * from INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA=?");
+			stmt2.setString(1, dbName);
+			rs2 = stmt2.executeQuery();
+
+			while (rs2.next()) {
+				//String tblName = rs2.getString("TABLE_NAME");
+				//Table t = tables.get(tblName);
+				t.updateFromRS(rs2);
 			}
 		}
 		catch (SQLException sqle)
@@ -48,20 +57,36 @@ public class Database
 		}
 		finally
         {
-            if (rs != null) {
+            if (rs1 != null) {
                 try {
-                    rs.close();
+                    rs1.close();
                 } catch (SQLException sqlEx) { }
         
-                rs = null;
+                rs1 = null;
+            }
+
+            if (stmt1 != null) {
+                try {
+                    stmt1.close();
+                } catch (SQLException sqlEx) { }
+        
+                stmt1 = null;
+			}
+			
+			if (rs2 != null) {
+                try {
+                    rs2.close();
+                } catch (SQLException sqlEx) { }
+        
+                rs2 = null;
             }
         
-            if (stmt != null) {
+            if (stmt2 != null) {
                 try {
-                    stmt.close();
+                    stmt2.close();
                 } catch (SQLException sqlEx) { }
         
-                stmt = null;
+                stmt2 = null;
             }
         }
 	}

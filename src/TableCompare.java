@@ -6,6 +6,15 @@ public class TableCompare {
 		// iterate through the fields in t1 and see if each one matches (or exists) in t2.
 		TableDiff td = new TableDiff(srcTable.getName());
 
+		if (td.getAutoIncrement() != srcTable.getAutoIncrement())
+			td.setAutoIncrement(srcTable.getAutoIncrement());
+
+		if (!td.getEngine().equals(srcTable.getEngine()))
+			td.setEngine(srcTable.getEngine());
+
+		if (!td.getCollation().equals(srcTable.getCollation()))
+			td.setCollation(srcTable.getCollation());
+
 		Map<String, Field> fields = srcTable.getFields();
 
 		for (Map.Entry<String, Field> entry : fields.entrySet())

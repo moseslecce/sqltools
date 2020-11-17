@@ -7,12 +7,15 @@ public class Field {
 	private String typeName;
 	private Integer precision = null;
 	private Integer scale = null;
+	private Integer characterMaxLen = null;
 	private boolean isNullable;
+	private String colDefault = null;
 
-	public Field(String name, String columnType, String typeName, Integer precision, Integer scale, boolean isNullable) {
+	public Field(String name, String columnType, String typeName, Integer precision, Integer scale, Integer characterMaxLen, boolean isNullable, String colDefault) {
 		this.name = name;
 		this.typeName = typeName;
 		this.columnType = columnType;
+		this.characterMaxLen = characterMaxLen;
 
 		if (precision > 0)
 			this.precision = precision;
@@ -21,6 +24,7 @@ public class Field {
 			this.scale = scale;
 
 		this.isNullable = isNullable;
+		this.colDefault = colDefault;
 	}
 
 	/*
@@ -29,7 +33,7 @@ public class Field {
 	}*/
 
 	public static Field populateFromRS(ResultSet rs) throws SQLException {
-		return new Field(rs.getString("COLUMN_NAME"), rs.getString("COLUMN_TYPE"), rs.getString("DATA_TYPE"), rs.getInt("NUMERIC_PRECISION"), rs.getInt("NUMERIC_SCALE"), rs.getString("IS_NULLABLE").equals("YES"));
+		return new Field(rs.getString("COLUMN_NAME"), rs.getString("COLUMN_TYPE"), rs.getString("DATA_TYPE"), rs.getInt("NUMERIC_PRECISION"), rs.getInt("NUMERIC_SCALE"), rs.getInt("CHARACTER_MAXIMUM_LENGTH"), rs.getString("IS_NULLABLE").equals("YES"), rs.getString("COLUMN_DEFAULT"));
 	}
 
 	public String getName()
@@ -51,9 +55,8 @@ public class Field {
 		return this.isNullable;
 	}
 
-	//@TODO: Implement me.
 	public String getDefaultValue() {
-		return "NULL";
+		return this.colDefault;
 	}
 
 	//@TODO: Implement me.
@@ -69,6 +72,10 @@ public class Field {
 		return this.scale;
 	}
 
+	public Integer getCharacterMaxLen() {
+		return this.characterMaxLen;
+	}
+
 	@Override
     public boolean equals(Object o) { 
 		// If the object is compared with itself then return true   
@@ -81,6 +88,6 @@ public class Field {
 		}
 		
 		Field f = (Field) o;
-		return f.getScale() == this.getScale() && f.getPrecision() == this.getPrecision() && f.getDefaultValue() == this.getDefaultValue() && f.getTypeName().equals(this.getTypeName());
+		return f.getScale() == this.getScale() && f.getPrecision() == this.getPrecision() && f.getDefaultValue() == this.getDefaultValue() && f.getCharacterMaxLen() == this.getCharacterMaxLen() && f.getTypeName().equals(this.getTypeName());
 	}
 }
