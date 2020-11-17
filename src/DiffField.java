@@ -21,5 +21,5 @@ public class DiffField extends Field {
 	public String getOperation()
 	{
 		return this.typeOfChange;
-	}	
+	}
 }

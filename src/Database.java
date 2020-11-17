@@ -17,80 +17,54 @@ public class Database
 	public Database(String dbUrl, String dbUser, String dbPasswd, String dbName) throws SQLException {
 
 		this.tables = new HashMap<>();
-
-		Connection conn = null;
-		ResultSet rs2 = null;
-		PreparedStatement stmt2 = null;
-
-		ResultSet rs1 = null;
-		PreparedStatement stmt1 = null;
-
-		try
+		try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPasswd);)
 		{
-			conn = DriverManager.getConnection(dbUrl, dbUser, dbPasswd);
-
-			stmt1 = conn.prepareStatement("select * from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA=?");
-			stmt1.setString(1, dbName);
-			rs1 = stmt1.executeQuery();
-
-			Table t = null;
-			if (rs1.next())
+			try(PreparedStatement stmt1 = conn.prepareStatement("select * from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA=?");)
 			{
-				t = Table.populateFromRS(rs1);
-				this.tables.put(t.getName(), t);
-			}			
-			
-			
-			stmt2 = conn.prepareStatement("select * from INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA=?");
-			stmt2.setString(1, dbName);
-			rs2 = stmt2.executeQuery();
-
-			while (rs2.next()) {
-				//String tblName = rs2.getString("TABLE_NAME");
-				//Table t = tables.get(tblName);
-				t.addFieldFromRS(rs2);
+				stmt1.setString(1, dbName);
+				try (ResultSet rs1 = stmt1.executeQuery();)
+				{
+					while (rs1.next())
+					{
+						Table t = Table.populateFromRS(rs1);
+						this.tables.put(t.getName(), t);
+					}
+				}
 			}
 
-			t.populatePositions();
+			try(PreparedStatement stmt2 = conn.prepareStatement("select * from INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA=?");)
+			{
+				stmt2.setString(1, dbName);
+				try (ResultSet rs2 = stmt2.executeQuery();)
+				{
+					Table t = null;
+					while (rs2.next()) {
+						String tblName = rs2.getString("TABLE_NAME");
+						t = tables.get(tblName);
+						t.addFieldFromRS(rs2);						
+					}
+					t.populatePositions();
+				}
+			}
+
+			try (PreparedStatement stmt = conn.prepareStatement("select * from INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA=?");)
+			{				
+				stmt.setString(1, dbName);
+				try (ResultSet rs = stmt.executeQuery();)
+				{
+					while (rs.next())
+					{
+						String tblName = rs.getString("TABLE_NAME");
+						Table t = tables.get(tblName);
+						t.populateIndexesFromRS(rs);
+					}
+				}
+			}
 		}
 		catch (SQLException sqle)
 		{
 			throw sqle;
 		}
-		finally
-        {
-            if (rs1 != null) {
-                try {
-                    rs1.close();
-                } catch (SQLException sqlEx) { }
-        
-                rs1 = null;
-            }
-
-            if (stmt1 != null) {
-                try {
-                    stmt1.close();
-                } catch (SQLException sqlEx) { }
-        
-                stmt1 = null;
-			}
-			
-			if (rs2 != null) {
-                try {
-                    rs2.close();
-                } catch (SQLException sqlEx) { }
-        
-                rs2 = null;
-            }
-        
-            if (stmt2 != null) {
-                try {
-                    stmt2.close();
-                } catch (SQLException sqlEx) { }
-        
-                stmt2 = null;
-            }
-        }
 	}
 
 	/*

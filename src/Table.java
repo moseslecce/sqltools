@@ -4,16 +4,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Table {
-	private String name;
-	private Map<String,Field> fields;
+	private String name;	
 	private String collation;
 	private String engine;
 	private Integer autoIncrement;
-	private Map<Integer,Field> positions;
+
+	private Map<String,Field> fields;
+	private Map<Integer,Field> positions; //order,Field.
+	private Map<String,Key> keys; // Name,Key
 
 	public Table(String name, String collation, String engine, Integer autoIncrement) {
 		this.fields = new HashMap<>();
 		this.positions = new HashMap<>();
+		this.keys = new HashMap<>();
+
 		this.name = name;
 		this.collation = collation;
 		this.engine = engine;
@@ -23,7 +27,6 @@ public class Table {
 	}
 
 	public static Table populateFromRS(ResultSet rs) throws SQLException {
-		System.out.println("engine in populate is : " + rs.getString("ENGINE"));
 		return new Table(rs.getString("TABLE_NAME"),rs.getString("TABLE_COLLATION"), rs.getString("ENGINE"), rs.getInt("AUTO_INCREMENT"));
 	}
 
@@ -32,6 +35,23 @@ public class Table {
 		Field f = Field.populateFromRS(rs);
 		this.fields.put(f.getName(), f);
 		this.positions.put(f.getPosition(),f);
+	}
+
+	public void populateIndexesFromRS(ResultSet rs) throws SQLException 
+	{
+		while (rs.next())
+		{
+			String indexName = rs.getString("INDEX_NAME");
+			System.out.println("POPULATING from RS: " + indexName);
+			
+			if (this.keys.get(indexName) == null)
+				this.keys.put(indexName, Key.populateFromRS(rs));
+			else
+			{
+				Key k = this.keys.get(indexName);
+				k.addColumnFromRS(rs);				
+			}
+		}
 	}
 
 	public String getName() {
@@ -45,6 +65,11 @@ public class Table {
 	public Map<String,Field> getFields()
 	{
 		return this.fields;
+	}
+
+	public Map<String,Key> getKeys()
+	{
+		return this.keys;
 	}
 
 	public String getCollation()
@@ -87,6 +112,17 @@ public class Table {
 			return true;
 
 		return false;
+	}
+
+	public boolean hasKey(String name) {
+		if (this.keys.get(name) != null)
+			return true;
+
+		return false;
+	}
+
+	public Key getKey(String name) {
+		return this.keys.get(name);
 	}
 
 	public Field getField(String key) {

@@ -5,6 +5,10 @@ import java.util.Map;
 public class CompareStatement {
 	private TableDiff tableDiff;
 
+	private static final String OPERATION_DROP = "DROP";
+	private static final String OPERATION_ADD = "ADD";
+	private static final String OPERATION_CHANGE = "CHANGE";
+
 	public CompareStatement(TableDiff tdiff) 
 	{
 		this.tableDiff = tdiff;
@@ -12,48 +16,60 @@ public class CompareStatement {
 
 	public String getSQL() throws IOException
 	{
-		StringWriter output = new StringWriter();
-
-		output.write("/* Alter table in destination */\n");
-		output.write("ALTER TABLE `");
-		output.write(this.tableDiff.getTableName());
-		output.write("` \n");
-		//this.addColumn(output, "my_field", "DECIMAL", "18,4", true, "0.0000","other_field","utf8_general_ci",true,"CHANGE");		
-
-		for (Map.Entry<Integer,DiffField> entry : this.tableDiff.getFields().entrySet())
+		String string = "";
+		try(StringWriter out = new StringWriter();)
 		{
-			DiffField field = entry.getValue();
-			this.addColumn(output, field, field.getOperation());
-			output.write(",\n");
+			out.write("SET FOREIGN_KEY_CHECKS=0;\n");
+
+			out.write("/* Alter table in destination */\n");
+			out.write("ALTER TABLE `");
+			out.write(this.tableDiff.getTableName());
+			out.write("` \n");
+
+			for (Map.Entry<Integer,DiffField> entry : this.tableDiff.getFields().entrySet())
+			{
+				DiffField field = entry.getValue();
+				this.addColumn(out, field, field.getOperation());
+				out.write(",\n");
+			}
+
+			for (Map.Entry<String,DiffKey> entry : this.tableDiff.getKeys().entrySet())
+			{
+				DiffKey key= entry.getValue();
+				this.addKey(out, key, key.getOperation());
+				out.write(",\n");
+			}
+
+			if (this.tableDiff.getAutoIncrement() != null)
+			{
+				out.write("AUTO_INCREMENT=");
+				out.write(String.valueOf(this.tableDiff.getAutoIncrement()));
+				out.write(" ");
+			}
+
+			if (this.tableDiff.getCollation() != null)
+			{
+				out.write("DEFAULT CHARSET='");
+				out.write("utf8"); //TODO: Figure out where this should come from.
+				out.write("', COLLATE ='");
+				out.write(this.tableDiff.getCollation());
+				out.write("' ");
+			}
+
+			if (this.tableDiff.getEngine() != null)
+			{
+				out.write("ENGINE='");			
+				out.write(this.tableDiff.getEngine());
+				out.write("' ");
+			}
+
+			out.write(";\n");
+
+			out.write("SET FOREIGN_KEY_CHECKS=1;");
+
+			string = out.toString();
 		}
 
-		if (this.tableDiff.getAutoIncrement() != null)
-		{
-			output.write("AUTO_INCREMENT=");
-			output.write(String.valueOf(this.tableDiff.getAutoIncrement()));
-			output.write(" ");
-		}
-
-		if (this.tableDiff.getCollation() != null)
-		{
-			output.write("DEFAULT CHARSET='");
-			output.write("utf8"); //TODO: Figure out where this should come from.
-			output.write("', COLLATE ='");
-			output.write(this.tableDiff.getCollation());
-			output.write("' ");
-		}
-
-		if (this.tableDiff.getEngine() != null)
-		{
-			output.write("ENGINE='");			
-			output.write(this.tableDiff.getEngine());
-			output.write("' ");
-		}
-
-		output.write(";");
-
-		String string = output.toString();
-		output.close();
 		return string;
 	}
 
@@ -62,32 +78,61 @@ public class CompareStatement {
 		this._addColumn(output, field.getName(), field.getColumnType(), field.getTypeName(), field.getPrecision(), field.getScale(), field.isNullable(), field.getDefaultValue(), field.getAfterField(), field.getCollation(), field.isUnsigned(), operation);
 	}
 
-	private void _addColumn(StringWriter output, String columnName, String columnType, String fieldType, Integer precision, Integer scale, boolean isNullable, String defaultValue, String afterField, String collation, boolean unsigned, String operation)
+	private void addKey(StringWriter out, Key key, String operation)
 	{
-		output.write("\t");
-		if (operation == "CHANGE")
+		String keyName = key.getName();
+
+		out.write("\t");
+		if (operation == CompareStatement.OPERATION_CHANGE)
 		{
-			output.write("CHANGE `");
+			out.write("CHANGE `");
 		}
-		else if (operation == "ADD")
+		else if (operation == CompareStatement.OPERATION_ADD)
 		{
-			output.write("ADD COLUMN `");
+			out.write("ADD KEY `");
 		}
-		else if (operation == "DROP")
+		else if (operation == CompareStatement.OPERATION_DROP)
 		{
-			output.write("DROP COLUMN `");
-			output.write(columnName);
-			output.write("` ");
+			out.write("DROP KEY `");
+			out.write(keyName);
+			out.write("` ");
 			return;
 		}
 
-		output.write(columnName);
-		output.write("` ");
+		out.write(keyName);
+		out.write("` ");
+		
+		out.write("(");
+		out.write(key.getFieldSQL());
+		out.write(") ");
+	}
+
+	private void _addColumn(StringWriter out, String columnName, String columnType, String fieldType, Integer precision, Integer scale, boolean isNullable, String defaultValue, String afterField, String collation, boolean unsigned, String operation)
+	{
+		out.write("\t");
 		if (operation == "CHANGE")
 		{
-			output.write("`");
-			output.write(columnName);
-			output.write("` ");
+			out.write("CHANGE `");
+		}
+		else if (operation == "ADD")
+		{
+			out.write("ADD COLUMN `");
+		}
+		else if (operation == "DROP")
+		{
+			out.write("DROP COLUMN `");
+			out.write(columnName);
+			out.write("` ");
+			return;
+		}
+
+		out.write(columnName);
+		out.write("` ");
+		if (operation == "CHANGE")
+		{
+			out.write("`");
+			out.write(columnName);
+			out.write("` ");
 		}
 
 		/*
@@ -107,44 +152,44 @@ public class CompareStatement {
 			output.write(") ");
 		}*/
 
-		output.write(columnType);
-		output.write(" ");
+		out.write(columnType);
+		out.write(" ");
 
 		if (unsigned)
-			output.write("UNSIGNED ");
+			out.write("UNSIGNED ");
 
 		if (collation != null)
 		{
-			output.write("COLLATE ");
-			output.write(collation);
-			output.write(" ");
+			out.write("COLLATE ");
+			out.write(collation);
+			out.write(" ");
 		}
 
 		if (isNullable)
-			output.write("NULL ");
+			out.write("NULL ");
 		else
-			output.write("NOT NULL ");
+			out.write("NOT NULL ");
 		
 		if (defaultValue != null)
 		{
-			output.write("DEFAULT ");
+			out.write("DEFAULT ");
 			if (!defaultValue.equals("NULL"))
-				output.write("'");
+				out.write("'");
 			
-			output.write(defaultValue);
+			out.write(defaultValue);
 
 			if (!defaultValue.equals("NULL"))
-				output.write("'");
+				out.write("'");
 
-			output.write(" ");
+			out.write(" ");
 		}
 
 		if (afterField != null)
 		{
-			output.write("AFTER ");
-			output.write("`");
-			output.write(afterField);
-			output.write("` ");
+			out.write("AFTER ");
+			out.write("`");
+			out.write(afterField);
+			out.write("` ");
 		}
 	}
 }

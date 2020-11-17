@@ -48,6 +48,34 @@ public class TableCompare {
 				td.addExtraFields(field);
 		}
 
+
+		Map<String,Key> keys = srcTable.getKeys();
+		for (Map.Entry<String,Key> entry : keys.entrySet())
+		{
+			String keyName = entry.getKey();
+			Key key = entry.getValue();
+			if (destTable.hasKey(keyName))
+			{
+				Key key2 = destTable.getKey(keyName);
+				// If the key exists, check that it's identical.
+				if (!key.equals(key2))
+					td.addDifferentKey(key);
+			}
+			else
+			{
+				// the key doesn't exist in the dest, so we need to add it.
+				td.addMissingKey(key);
+			}
+		}
+
+		for (Map.Entry<String, Key> entry : destTable.getKeys().entrySet())
+		{
+			String keyName = entry.getKey();
+			Key key = entry.getValue();
+			if (!srcTable.hasKey(keyName))
+				td.addExtraKey(key);
+		}
+
 		return td;
 	}
 }
