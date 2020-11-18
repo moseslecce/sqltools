@@ -33,6 +33,13 @@ public class CompareStatement {
 				out.write(",\n");
 			}
 
+			for (Map.Entry<String,DiffField> entry : this.tableDiff.getDropFields().entrySet())
+			{
+				DiffField field = entry.getValue();
+				this.addColumn(out, field, field.getOperation());
+				out.write(",\n");
+			}
+
 			for (Map.Entry<String,DiffKey> entry : this.tableDiff.getKeys().entrySet())
 			{
 				DiffKey key= entry.getValue();

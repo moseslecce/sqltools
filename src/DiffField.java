@@ -22,4 +22,9 @@ public class DiffField extends Field {
 	{
 		return this.typeOfChange;
 	}
+
+	public String toString()
+	{
+		return "DiffField:" +this.getName();
+	}
 }

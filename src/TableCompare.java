@@ -27,7 +27,6 @@ public class TableCompare {
 			{
 				// If the field exists, check that it's identical.
 				Field field2 = destTable.getField(key);
-
 				if (!field.equals(field2))
 					td.addDifferentField(field);
 			}
@@ -43,7 +42,7 @@ public class TableCompare {
 			String key = entry.getKey();
 			Field field = entry.getValue();
 			if (!srcTable.hasField(key))
-				td.addExtraFields(field);
+				td.addExtraFields(field); // Adding field: dropme at position: 15 // same position as bingobucks.. overlap.
 		}
 
 		Map<String,Key> keys = srcTable.getKeys();

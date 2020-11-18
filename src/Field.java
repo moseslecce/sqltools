@@ -139,6 +139,7 @@ public class Field {
 		}
 
 		Field f = (Field) o;
+
 		return f.getScale() == this.getScale() 
 			&& f.getPrecision() == this.getPrecision() 
 			&& StringUtil.compare(f.getDefaultValue(),this.getDefaultValue())

@@ -8,11 +8,13 @@ public class TableDiff {
 	private String engine;
 	private String collation;
 	private Map<Integer,DiffField> fields; // sorted by the position.
+	private Map<String,DiffField> dropFields; // sorted by the key name.
 	private Map<String,DiffKey> keys;
 
 	public TableDiff(String tableName)
 	{
 		this.fields = new TreeMap<>();
+		this.dropFields = new TreeMap<>();
 		this.keys = new TreeMap<>();
 
 		this.tableName = tableName;
@@ -48,7 +50,7 @@ public class TableDiff {
 
 	public void addExtraFields(Field field)
 	{
-		this.fields.put(field.getPosition(), new DiffField(field,"DROP"));
+		this.dropFields.put(field.getName(), new DiffField(field,"DROP"));
 	}
 
 	public void addMissingKey(Key key) 
@@ -69,6 +71,11 @@ public class TableDiff {
 	public Map<Integer,DiffField> getFields()
 	{
 		return this.fields;
+	}
+
+	public Map<String,DiffField> getDropFields()
+	{
+		return this.dropFields;
 	}
 
 	public Map<String,DiffKey> getKeys()
