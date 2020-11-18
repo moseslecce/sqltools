@@ -47,7 +47,7 @@ public class Table {
 		else
 		{
 			Key k = this.keys.get(indexName);
-			k.addColumnFromRS(rs);				
+			k.addColumnFromRS(rs);		
 		}
 	}
 

@@ -1,3 +1,4 @@
+import java.util.HashSet;
 import java.util.Map;
 
 public class TableCompare {
@@ -73,5 +74,23 @@ public class TableCompare {
 		}
 
 		return td;
+	}
+
+	public static void compareDbs(Database sourceDB, Database destDB) 
+	{
+		Map<String, Table> sourceTables = sourceDB.getTables();
+		Map<String, Table> destTables = destDB.getTables();
+
+		// Find tables in the dest that don't exist in the source (so we should drop them)
+		HashSet<String> tablesToDrop = new HashSet<>(sourceTables.keySet());
+		tablesToDrop.addAll(destTables.keySet());
+		tablesToDrop.removeAll(sourceTables.keySet());
+		System.out.println("Tables to drop: " + tablesToDrop);
+
+		// Find missing tables in the source that don't exist in the dest (so we should create them)
+		HashSet<String> tablesToCreate = new HashSet<>(destTables.keySet());
+		tablesToCreate.addAll(sourceTables.keySet());
+		tablesToCreate.removeAll(destTables.keySet());
+		System.out.println("Tables to create: " + tablesToCreate);
 	}
 }

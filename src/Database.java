@@ -43,9 +43,11 @@ public class Database
 						t = tables.get(tblName);
 						t.addFieldFromRS(rs2);						
 					}
-					t.populatePositions();
 				}
 			}
+
+			for(Table t : this.tables.values())
+				t.populatePositions();
 
 			try (PreparedStatement stmt = conn.prepareStatement("select * from INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA=?");)
 			{				

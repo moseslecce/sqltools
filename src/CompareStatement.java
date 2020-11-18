@@ -36,8 +36,12 @@ public class CompareStatement {
 			for (Map.Entry<String,DiffKey> entry : this.tableDiff.getKeys().entrySet())
 			{
 				DiffKey key= entry.getValue();
-				this.addKey(out, key, key.getOperation());
-				out.write(",\n");
+
+				if (!key.getName().equals("PRIMARY")) // Ignore PRIMARY keys.
+				{
+					this.addKey(out, key, key.getOperation());
+					out.write(",\n");
+				}
 			}
 
 			if (this.tableDiff.getAutoIncrement() != null)
@@ -75,13 +79,12 @@ public class CompareStatement {
 
 	private void addColumn(StringWriter output, Field field, String operation)
 	{
-		this._addColumn(output, field.getName(), field.getColumnType(), field.getTypeName(), field.getPrecision(), field.getScale(), field.isNullable(), field.getDefaultValue(), field.getAfterField(), field.getCollation(), field.isUnsigned(), operation);
+		this._addColumn(output, field.getName(), field.getColumnType(), field.getTypeName(), field.getPrecision(), field.getScale(), field.isNullable(), field.getDefaultValueFormatted(), field.getAfterField(), field.getCollation(), field.isUnsigned(), field.getExtra(), operation);
 	}
 
 	private void addKey(StringWriter out, Key key, String operation)
 	{
 		String keyName = key.getName();
-
 		out.write("\t");
 		if (operation == CompareStatement.OPERATION_CHANGE)
 		{
@@ -107,7 +110,7 @@ public class CompareStatement {
 		out.write(") ");
 	}
 
-	private void _addColumn(StringWriter out, String columnName, String columnType, String fieldType, Integer precision, Integer scale, boolean isNullable, String defaultValue, String afterField, String collation, boolean unsigned, String operation)
+	private void _addColumn(StringWriter out, String columnName, String columnType, String fieldType, Integer precision, Integer scale, boolean isNullable, String defaultValue, String afterField, String collation, boolean unsigned, String extra, String operation)
 	{
 		out.write("\t");
 		if (operation == "CHANGE")
@@ -173,14 +176,13 @@ public class CompareStatement {
 		if (defaultValue != null)
 		{
 			out.write("DEFAULT ");
-			if (!defaultValue.equals("NULL"))
-				out.write("'");
-			
 			out.write(defaultValue);
+			out.write(" ");
+		}
 
-			if (!defaultValue.equals("NULL"))
-				out.write("'");
-
+		if (extra != null)
+		{
+			out.write(extra);
 			out.write(" ");
 		}
 

@@ -11,16 +11,17 @@ public class App2 {
         System.out.println("Starting Comparison..");
 
         try {
-            Database db1 = new Database(DB_URL, DB_USER, DB_PASSWD, "synctest1");
-            Database db2 = new Database(DB_URL, DB_USER, DB_PASSWD, "synctest2");
-
-            Table t1 = db1.getTable("currency");
-            Table t2 = db2.getTable("currency");
-
+            Database srcDB = new Database(DB_URL, DB_USER, DB_PASSWD, "synctest1");
+            Database destDB = new Database(DB_URL, DB_USER, DB_PASSWD, "synctest2");
+            
+            Table t1 = srcDB.getTable("currency");
+            Table t2 = destDB.getTable("currency");
+            
             TableDiff tdiff = TableCompare.compare(t1,t2);
             CompareStatement cs = new CompareStatement(tdiff);
             System.out.println(cs.getSQL());
 
+            TableCompare.compareDbs(srcDB,destDB);
         } catch (SQLException ex) {
             ex.printStackTrace();
             // handle any errors

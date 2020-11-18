@@ -13,8 +13,9 @@ public class Field {
 	private Integer position = null;
 	private String afterField = null;
 	private String collation = null;
+	private String extra = null;
 
-	public Field(String name, Integer position, String columnType, String typeName, Integer precision, Integer scale, Integer characterMaxLen, boolean isNullable, String colDefault, String collation, String afterField) {
+	public Field(String name, Integer position, String columnType, String typeName, Integer precision, Integer scale, Integer characterMaxLen, boolean isNullable, String colDefault, String collation, String extra, String afterField) {
 		this.name = name;
 		this.typeName = typeName;
 		this.columnType = columnType;
@@ -31,6 +32,7 @@ public class Field {
 		this.colDefault = colDefault;
 		this.collation = collation;
 		this.afterField = afterField;
+		this.extra = extra;
 	}
 
 	/*
@@ -44,7 +46,7 @@ public class Field {
 	}
 
 	public static Field populateFromRS(ResultSet rs) throws SQLException {
-		return new Field(rs.getString("COLUMN_NAME"), rs.getInt("ORDINAL_POSITION"), rs.getString("COLUMN_TYPE"), rs.getString("DATA_TYPE"), rs.getInt("NUMERIC_PRECISION"), rs.getInt("NUMERIC_SCALE"), rs.getInt("CHARACTER_MAXIMUM_LENGTH"), rs.getString("IS_NULLABLE").equals("YES"), rs.getString("COLUMN_DEFAULT"), rs.getString("COLLATION_NAME"), null);
+		return new Field(rs.getString("COLUMN_NAME"), rs.getInt("ORDINAL_POSITION"), rs.getString("COLUMN_TYPE"), rs.getString("DATA_TYPE"), rs.getInt("NUMERIC_PRECISION"), rs.getInt("NUMERIC_SCALE"), rs.getInt("CHARACTER_MAXIMUM_LENGTH"), rs.getString("IS_NULLABLE").equals("YES"), rs.getString("COLUMN_DEFAULT"), rs.getString("COLLATION_NAME"), rs.getString("EXTRA"), null);
 	}
 
 	public String getName()
@@ -67,7 +69,25 @@ public class Field {
 	}
 
 	public String getDefaultValue() {
+
 		return this.colDefault;
+	}
+
+	public String getDefaultValueFormatted() 
+	{
+		if (this.colDefault != null)
+		{
+			if (this.typeName.equalsIgnoreCase("timestamp") || this.typeName.equalsIgnoreCase("datetime"))
+				return this.colDefault;
+			
+
+			if (!this.colDefault.equals("NULL"))
+				return "'".concat(this.colDefault).concat("'");
+
+			return this.colDefault;
+		}
+
+		return null;
 	}
 
 	public String getCollation() {
@@ -97,6 +117,11 @@ public class Field {
 		this.afterField = val;
 	}
 
+	public String getExtra()
+	{
+		return this.extra;
+	}
+
 	public String getAfterField()
 	{
 		return this.afterField;
@@ -112,15 +137,13 @@ public class Field {
 		if (!(o instanceof Field)) { 
             return false; 
 		}
-		
+
 		Field f = (Field) o;
 		return f.getScale() == this.getScale() 
 			&& f.getPrecision() == this.getPrecision() 
-			//&& f.getDefaultValue().equals(this.getDefaultValue()) 
-			&& ((f.getDefaultValue() == null && f.getDefaultValue() == this.getDefaultValue()) || (f.getDefaultValue().equals(this.getDefaultValue()))) 
+			&& StringUtil.compare(f.getDefaultValue(),this.getDefaultValue())
 			&& f.getCharacterMaxLen() == this.getCharacterMaxLen() 
 			&& f.getTypeName().equals(this.getTypeName()) 
-			&& ((f.getCollation() == null && f.getCollation() == this.getCollation()) || (f.getCollation().equals(this.getCollation()))
-			);
+			&& StringUtil.compare(f.getCollation(), this.getCollation());
 	}
 }
