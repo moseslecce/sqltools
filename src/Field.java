@@ -74,8 +74,10 @@ public class Field {
 		return this.collation;
 	}
 
-	//TODO: Implement me.
 	public boolean isUnsigned() {
+		if (this.columnType.endsWith("unsigned"))
+			return true;
+
 		return false;
 	}
 

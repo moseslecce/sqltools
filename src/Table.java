@@ -39,18 +39,15 @@ public class Table {
 
 	public void populateIndexesFromRS(ResultSet rs) throws SQLException 
 	{
-		while (rs.next())
+		String indexName = rs.getString("INDEX_NAME");
+		if (this.keys.get(indexName) == null)
 		{
-			String indexName = rs.getString("INDEX_NAME");
-			System.out.println("POPULATING from RS: " + indexName);
-			
-			if (this.keys.get(indexName) == null)
-				this.keys.put(indexName, Key.populateFromRS(rs));
-			else
-			{
-				Key k = this.keys.get(indexName);
-				k.addColumnFromRS(rs);				
-			}
+			this.keys.put(indexName, Key.populateFromRS(rs));
+		}
+		else
+		{
+			Key k = this.keys.get(indexName);
+			k.addColumnFromRS(rs);				
 		}
 	}
 

@@ -12,9 +12,6 @@ public class TableCompare {
 		if (!destTable.getEngine().equals(srcTable.getEngine()))
 			destTable.setEngine(srcTable.getEngine());
 
-		System.out.println("Src collation: " + srcTable.getCollation());
-		System.out.println("Dest collation: " + destTable.getCollation());
-
 		if (!destTable.getCollation().equals(srcTable.getCollation()))
 			td.setCollation(srcTable.getCollation());
 
@@ -47,7 +44,6 @@ public class TableCompare {
 			if (!srcTable.hasField(key))
 				td.addExtraFields(field);
 		}
-
 
 		Map<String,Key> keys = srcTable.getKeys();
 		for (Map.Entry<String,Key> entry : keys.entrySet())
