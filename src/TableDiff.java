@@ -10,12 +10,14 @@ public class TableDiff {
 	private Map<Integer,DiffField> fields; // sorted by the position.
 	private Map<String,DiffField> dropFields; // sorted by the key name.
 	private Map<String,DiffKey> keys;
+	private Map<String,DiffForeignKey> foreignKeys;
 
 	public TableDiff(String tableName)
 	{
 		this.fields = new TreeMap<>();
 		this.dropFields = new TreeMap<>();
 		this.keys = new TreeMap<>();
+		this.foreignKeys = new TreeMap<>();
 
 		this.tableName = tableName;
 		this.autoIncrement = null;
@@ -40,32 +42,47 @@ public class TableDiff {
 
 	public void addMissingField(Field field) 
 	{
-		this.fields.put(field.getPosition(), new DiffField(field,"ADD"));
+		this.fields.put(field.getPosition(), new DiffField(field,CompareStatement.OPERATION_ADD));
 	}
 
 	public void addDifferentField(Field field)
 	{
-		this.fields.put(field.getPosition(), new DiffField(field,"CHANGE"));
+		this.fields.put(field.getPosition(), new DiffField(field,CompareStatement.OPERATION_CHANGE));
 	}
 
 	public void addExtraFields(Field field)
 	{
-		this.dropFields.put(field.getName(), new DiffField(field,"DROP"));
+		this.dropFields.put(field.getName(), new DiffField(field,CompareStatement.OPERATION_DROP));
 	}
 
 	public void addMissingKey(Key key) 
 	{
-		this.keys.put(key.getName(), new DiffKey(key,"ADD"));
+		this.keys.put(key.getName(), new DiffKey(key,CompareStatement.OPERATION_ADD));
 	}
 
 	public void addDifferentKey(Key key)
 	{
-		this.keys.put(key.getName(), new DiffKey(key,"CHANGE"));
+		this.keys.put(key.getName(), new DiffKey(key,CompareStatement.OPERATION_CHANGE));
 	}
 
 	public void addExtraKey(Key key)
 	{
-		this.keys.put(key.getName(), new DiffKey(key,"DROP"));
+		this.keys.put(key.getName(), new DiffKey(key,CompareStatement.OPERATION_DROP));
+	}
+
+	public void addMissingForeignKey(ForeignKey fkey)
+	{
+		this.foreignKeys.put(fkey.getName(), new DiffForeignKey(fkey, CompareStatement.OPERATION_ADD));
+	}
+
+	public void addExtraForeignKey(ForeignKey fkey)
+	{
+		this.foreignKeys.put(fkey.getName(), new DiffForeignKey(fkey, CompareStatement.OPERATION_DROP));
+	}
+
+	public void addDifferentForeignKey(ForeignKey fkey)
+	{
+		this.foreignKeys.put(fkey.getName(), new DiffForeignKey(fkey, CompareStatement.OPERATION_CHANGE));
 	}
 
 	public Map<Integer,DiffField> getFields()
@@ -81,6 +98,11 @@ public class TableDiff {
 	public Map<String,DiffKey> getKeys()
 	{
 		return this.keys;
+	}
+
+	public Map<String,DiffForeignKey> getForeignKeys()
+	{
+		return this.foreignKeys;
 	}
 
 	public String getTableName() {

@@ -1,4 +1,5 @@
 import java.sql.SQLException;
+import java.util.Collection;
 
 public class App2 {
     static final String DB_URL = "jdbc:mysql://newlab/aberrant?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
@@ -14,14 +15,20 @@ public class App2 {
             Database srcDB = new Database(DB_URL, DB_USER, DB_PASSWD, "synctest1");
             Database destDB = new Database(DB_URL, DB_USER, DB_PASSWD, "synctest2");
             
+            /*
             Table t1 = srcDB.getTable("currency");
-            Table t2 = destDB.getTable("currency");
-            
+            Table t2 = destDB.getTable("currency");            
             TableDiff tdiff = TableCompare.compare(t1,t2);
-            CompareStatement cs = new CompareStatement(tdiff);
-            System.out.println(cs.getSQL());
+            CompareStatement cs1 = new CompareStatement(tdiff);
+            System.out.println(cs1.getSQL());
+            */
+            
+            Collection<CompareStatement> statements = TableCompare.compareDbs(srcDB,destDB);
+            for (CompareStatement cs : statements)
+            {
+                System.out.println(cs.getSQL());
+            }
 
-            TableCompare.compareDbs(srcDB,destDB);
         } catch (SQLException ex) {
             ex.printStackTrace();
             // handle any errors

@@ -62,6 +62,23 @@ public class Database
 					}
 				}
 			}
+
+
+			//try (PreparedStatement stmt = conn.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE = 'FOREIGN KEY' and CONSTRAINT_SCHEMA=?");)
+			try (PreparedStatement stmt = conn.prepareStatement("select * from information_schema.key_column_usage where referenced_table_name is not null and table_schema = ?");)		
+			{
+				stmt.setString(1, dbName);
+				try (ResultSet rs = stmt.executeQuery();)
+				{
+					while (rs.next())
+					{
+						String tblName = rs.getString("TABLE_NAME");
+						Table t = tables.get(tblName);
+						t.populateForeignKeysFromRS(rs);
+					}
+				}
+			}
+
 		}
 		catch (SQLException sqle)
 		{

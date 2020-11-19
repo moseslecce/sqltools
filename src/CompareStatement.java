@@ -5,9 +5,9 @@ import java.util.Map;
 public class CompareStatement {
 	private TableDiff tableDiff;
 
-	private static final String OPERATION_DROP = "DROP";
-	private static final String OPERATION_ADD = "ADD";
-	private static final String OPERATION_CHANGE = "CHANGE";
+	public static final String OPERATION_DROP = "DROP";
+	public static final String OPERATION_ADD = "ADD";
+	public static final String OPERATION_CHANGE = "CHANGE";
 
 	public CompareStatement(TableDiff tdiff) 
 	{
@@ -42,11 +42,22 @@ public class CompareStatement {
 
 			for (Map.Entry<String,DiffKey> entry : this.tableDiff.getKeys().entrySet())
 			{
-				DiffKey key= entry.getValue();
+				DiffKey key = entry.getValue();
 
 				if (!key.getName().equals("PRIMARY")) // Ignore PRIMARY keys.
 				{
 					this.addKey(out, key, key.getOperation());
+					out.write(",\n");
+				}
+			}
+
+			for (Map.Entry<String,DiffForeignKey> entry : this.tableDiff.getForeignKeys().entrySet())
+			{
+				DiffForeignKey key = entry.getValue();
+
+				if (!key.getName().equals("PRIMARY")) // Ignore PRIMARY keys.
+				{
+					this.addForeignKey(out, key, key.getOperation());
 					out.write(",\n");
 				}
 			}
@@ -116,6 +127,52 @@ public class CompareStatement {
 		out.write(key.getFieldSQL());
 		out.write(") ");
 	}
+
+	private void addForeignKey(StringWriter out, ForeignKey fk, String operation)
+	{
+		String keyName = fk.getName();
+		out.write("\t");
+
+		/*
+	     ADD CONSTRAINT `currency_ibfk_1`  
+		     FOREIGN KEY (`fkey`) REFERENCES `currency_fkey` (`id`) ON DELETE CASCADE ON UPDATE CASCADE ;
+		*/
+
+		if (operation == CompareStatement.OPERATION_DROP || operation == CompareStatement.OPERATION_CHANGE)
+		{
+			out.write("DROP FOREIGN KEY `");
+			out.write(keyName);
+			out.write("` ");
+		}
+
+		if (operation == CompareStatement.OPERATION_CHANGE)
+			out.write(",\n");
+
+		if (operation == CompareStatement.OPERATION_ADD || operation == CompareStatement.OPERATION_CHANGE)
+		{
+			out.write("ADD CONSTRAINT `");
+			out.write(keyName);
+			out.write("` \n");
+			
+			//ForeignKeyReference fkr = key.getColumns().get(key)
+			ForeignKeyReference fkr = fk.getKeyReference();
+
+			out.write(" FOREIGN KEY (`");
+
+			out.write(fkr.getColumnName());
+			out.write("`)" );
+			out.write("REFERENCES `");
+			out.write(fkr.getReferencedTableName());
+			out.write("`");
+
+			out.write("(`");
+			out.write(fkr.getReferencedColumnName());
+			out.write("`) ");
+
+			out.write(fkr.getExtra());
+		}
+	}
+	
 
 	private void _addColumn(StringWriter out, String columnName, String columnType, String fieldType, Integer precision, Integer scale, boolean isNullable, String defaultValue, String afterField, String collation, boolean unsigned, String extra, String operation)
 	{

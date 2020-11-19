@@ -12,11 +12,13 @@ public class Table {
 	private Map<String,Field> fields;
 	private Map<Integer,Field> positions; //order,Field.
 	private Map<String,Key> keys; // Name,Key
+	private Map<String,ForeignKey> fks; // Name, ForeignKey
 
 	public Table(String name, String collation, String engine, Integer autoIncrement) {
 		this.fields = new HashMap<>();
 		this.positions = new HashMap<>();
 		this.keys = new HashMap<>();
+		this.fks = new HashMap<>();
 
 		this.name = name;
 		this.collation = collation;
@@ -48,6 +50,20 @@ public class Table {
 		{
 			Key k = this.keys.get(indexName);
 			k.addColumnFromRS(rs);		
+		}
+	}
+	
+	public void populateForeignKeysFromRS(ResultSet rs) throws SQLException
+	{
+		String name = rs.getString("CONSTRAINT_NAME");
+		if (this.fks.get(name) == null)
+		{
+			this.fks.put(name, ForeignKey.populateFromRS(rs));
+		}
+		else
+		{
+			ForeignKey k = this.fks.get(name);
+			k.addColumnFromRS(rs);
 		}
 	}
 
@@ -120,6 +136,21 @@ public class Table {
 
 	public Key getKey(String name) {
 		return this.keys.get(name);
+	}
+
+	public boolean hasForeignKey(String name) {
+		if (this.fks.get(name) != null)
+			return true;
+
+		return false;
+	}
+
+	public ForeignKey getForeignKey(String name) {
+		return this.fks.get(name);
+	}
+
+	public Map<String, ForeignKey> getForeignKeys() {
+		return this.fks;
 	}
 
 	public Field getField(String key) {

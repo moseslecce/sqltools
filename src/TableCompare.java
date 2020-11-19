@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -16,8 +18,8 @@ public class TableCompare {
 		if (!destTable.getCollation().equals(srcTable.getCollation()))
 			td.setCollation(srcTable.getCollation());
 
+		// Find the different fields (additions, removals and changes)
 		Map<String, Field> fields = srcTable.getFields();
-
 		for (Map.Entry<String, Field> entry : fields.entrySet())
 		{
 			String key = entry.getKey();
@@ -45,6 +47,7 @@ public class TableCompare {
 				td.addExtraFields(field); // Adding field: dropme at position: 15 // same position as bingobucks.. overlap.
 		}
 
+		// Find the different keys (additions, removals and changes)
 		Map<String,Key> keys = srcTable.getKeys();
 		for (Map.Entry<String,Key> entry : keys.entrySet())
 		{
@@ -72,10 +75,38 @@ public class TableCompare {
 				td.addExtraKey(key);
 		}
 
+		// Find the different foreign keys (additions, removals and changes)
+		Map<String,ForeignKey> fkeys = srcTable.getForeignKeys();
+		for (Map.Entry<String,ForeignKey> entry : fkeys.entrySet())
+		{
+			String keyName = entry.getKey();
+			ForeignKey key = entry.getValue();
+			if (destTable.hasForeignKey(keyName))
+			{
+				ForeignKey key2 = destTable.getForeignKey(keyName);
+				// If the key exists, check that it's identical.
+				if (!key.equals(key2))
+					td.addDifferentForeignKey(key);
+			}
+			else
+			{
+				// the key doesn't exist in the dest, so we need to add it.
+				td.addMissingForeignKey(key);
+			}
+		}
+
+		for (Map.Entry<String, ForeignKey> entry : destTable.getForeignKeys().entrySet())
+		{
+			String keyName = entry.getKey();
+			ForeignKey key = entry.getValue();
+			if (!srcTable.hasForeignKey(keyName))
+				td.addExtraForeignKey(key);
+		}
+
 		return td;
 	}
 
-	public static void compareDbs(Database sourceDB, Database destDB) 
+	public static Collection<CompareStatement> compareDbs(Database sourceDB, Database destDB) 
 	{
 		Map<String, Table> sourceTables = sourceDB.getTables();
 		Map<String, Table> destTables = destDB.getTables();
@@ -91,5 +122,23 @@ public class TableCompare {
 		tablesToCreate.addAll(sourceTables.keySet());
 		tablesToCreate.removeAll(destTables.keySet());
 		System.out.println("Tables to create: " + tablesToCreate);
+
+		HashSet<String> tablesRemaining = new HashSet<>(sourceTables.keySet());
+		tablesRemaining.removeAll(tablesToDrop);
+		tablesRemaining.removeAll(tablesToCreate);
+
+		System.out.println("Tables remaining: " + tablesRemaining);
+		
+		ArrayList<CompareStatement> statements = new ArrayList<>();
+		for (String tableName : tablesRemaining)
+		{
+			Table t1 = sourceDB.getTable(tableName);
+			Table t2 = destDB.getTable(tableName);
+			TableDiff tdiff = TableCompare.compare(t1,t2);
+			CompareStatement cs = new CompareStatement(tdiff);
+			statements.add(cs);
+		}
+		
+		return statements;
 	}
 }
