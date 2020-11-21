@@ -157,17 +157,17 @@ public class CompareStatement {
 			//ForeignKeyReference fkr = key.getColumns().get(key)
 			ForeignKeyReference fkr = fk.getKeyReference();
 
-			out.write(" FOREIGN KEY (`");
+			out.write(" FOREIGN KEY (");
 
-			out.write(fkr.getColumnName());
-			out.write("`)" );
+			out.write(fkr.getColumnsForSql());
+			out.write(")" );
 			out.write("REFERENCES `");
 			out.write(fkr.getReferencedTableName());
 			out.write("`");
 
-			out.write("(`");
-			out.write(fkr.getReferencedColumnName());
-			out.write("`) ");
+			out.write("(");
+			out.write(fkr.getReferencedColumnsForSql());
+			out.write(") ");
 
 			out.write(fkr.getExtra());
 		}

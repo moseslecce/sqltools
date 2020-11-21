@@ -1,27 +1,48 @@
-
+import java.util.Map;
+import java.util.TreeMap;
 
 public class ForeignKeyReference {
-	private String columnName = null;
 	private String referencedTableName = null;
-	private String referencedColumnName = null;
-
-	public ForeignKeyReference(String columnName, String referencedTableName, String referencedColumnName)
+	private Map<Integer,String> columns;
+	private Map<Integer,String> refColumns;
+	
+	public ForeignKeyReference(String referencedTableName,  Map<Integer,String> columns,  Map<Integer,String> refColumns)
 	{
-		this.columnName = columnName;
+		this.columns = new TreeMap<>();
+		if (columns != null)
+			this.columns = columns;
+
+		this.refColumns = new TreeMap<>();
+		if (refColumns != null)
+			this.refColumns = refColumns;
+	
 		this.referencedTableName = referencedTableName;
-		this.referencedColumnName = referencedColumnName;
 	}
 
-	public String getColumnName() {
-		return this.columnName;
+	public void addColumn(String columnName, Integer seq, String referencedColumnName, Integer refSeq)
+	{
+		this.columns.put(seq, columnName);
+		this.refColumns.put(refSeq, referencedColumnName);
+	}
+
+	public String getColumnsForSql() {
+		String res = "";
+		for (String field : this.columns.values())
+			res = res.concat(String.format("`%s`,",field));
+
+		return StringUtil.removeLastCharacter(res);
+	}
+
+	public String getReferencedColumnsForSql() {
+		String res = "";
+		for (String field : this.refColumns.values())
+			res = res.concat(String.format("`%s`,",field));
+
+		return StringUtil.removeLastCharacter(res);
 	}
 
 	public String getReferencedTableName() {
 		return this.referencedTableName;
-	}
-
-	public String getReferencedColumnName() {
-		return this.referencedColumnName;
 	}
 
 	public String getExtra() {
