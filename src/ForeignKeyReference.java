@@ -5,8 +5,10 @@ public class ForeignKeyReference {
 	private String referencedTableName = null;
 	private Map<Integer,String> columns;
 	private Map<Integer,String> refColumns;
+	private String deleteRule;
+	private String updateRule;
 	
-	public ForeignKeyReference(String referencedTableName,  Map<Integer,String> columns,  Map<Integer,String> refColumns)
+	public ForeignKeyReference(String referencedTableName,  Map<Integer,String> columns,  Map<Integer,String> refColumns, String deleteRule, String updateRule)
 	{
 		this.columns = new TreeMap<>();
 		if (columns != null)
@@ -17,6 +19,9 @@ public class ForeignKeyReference {
 			this.refColumns = refColumns;
 	
 		this.referencedTableName = referencedTableName;
+
+		this.updateRule = updateRule;
+		this.deleteRule = deleteRule;
 	}
 
 	public void addColumn(String columnName, Integer seq, String referencedColumnName, Integer refSeq)
@@ -46,6 +51,12 @@ public class ForeignKeyReference {
 	}
 
 	public String getExtra() {
-		return "ON DELETE SOMETHING ON UPDATE SOMETHINGELSE"; //TODO: Find me
+		String res = "";
+		
+		if (this.deleteRule != null)
+			res = res.concat("ON DELETE ").concat(this.deleteRule);
+		if (this.updateRule != null)
+			res = res.concat(" ON UPDATE ").concat(this.updateRule);
+		return res;
 	}
 }

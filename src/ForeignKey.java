@@ -26,12 +26,12 @@ public class ForeignKey {
 	}
 
 	public void addColumnFromRS(ResultSet rs) throws SQLException {
-		this.addColumn(rs.getInt("ORDINAL_POSITION"),rs.getString("COLUMN_NAME"), rs.getString("REFERENCED_TABLE_NAME"), rs.getInt("POSITION_IN_UNIQUE_CONSTRAINT"), rs.getString("REFERENCED_COLUMN_NAME"));
+		this.addColumn(rs.getInt("ORDINAL_POSITION"),rs.getString("COLUMN_NAME"), rs.getString("REFERENCED_TABLE_NAME"), rs.getInt("POSITION_IN_UNIQUE_CONSTRAINT"), rs.getString("REFERENCED_COLUMN_NAME"), rs.getString("DELETE_RULE"), rs.getString("UPDATE_RULE"));
 	}
 
-	public void addColumn(Integer seq, String columnName, String referencedTableName, Integer refSeq, String referencedColumnName)
+	public void addColumn(Integer seq, String columnName, String referencedTableName, Integer refSeq, String referencedColumnName, String deleteRule, String updateRule)
 	{
-		this.keyRef = new ForeignKeyReference(referencedTableName, null, null);
+		this.keyRef = new ForeignKeyReference(referencedTableName, null, null, deleteRule, updateRule);
 		this.keyRef.addColumn(columnName, seq, referencedColumnName, refSeq);
 		this.columns.put(seq,this.keyRef);
 	}

@@ -14,6 +14,13 @@ public class CompareStatement {
 		this.tableDiff = tdiff;
 	}
 
+	private void addAlterTableStatement(StringWriter out)
+	{
+		out.write("ALTER TABLE `");
+		out.write(this.tableDiff.getTableName());
+		out.write("` \n");
+	}
+
 	public String getSQL() throws IOException
 	{
 		String string = "";
@@ -22,9 +29,7 @@ public class CompareStatement {
 			out.write("SET FOREIGN_KEY_CHECKS=0;\n");
 
 			out.write("/* Alter table in destination */\n");
-			out.write("ALTER TABLE `");
-			out.write(this.tableDiff.getTableName());
-			out.write("` \n");
+			this.addAlterTableStatement(out);			
 
 			for (Map.Entry<Integer,DiffField> entry : this.tableDiff.getFields().entrySet())
 			{
@@ -47,17 +52,6 @@ public class CompareStatement {
 				if (!key.getName().equals("PRIMARY")) // Ignore PRIMARY keys.
 				{
 					this.addKey(out, key, key.getOperation());
-					out.write(",\n");
-				}
-			}
-
-			for (Map.Entry<String,DiffForeignKey> entry : this.tableDiff.getForeignKeys().entrySet())
-			{
-				DiffForeignKey key = entry.getValue();
-
-				if (!key.getName().equals("PRIMARY")) // Ignore PRIMARY keys.
-				{
-					this.addForeignKey(out, key, key.getOperation());
 					out.write(",\n");
 				}
 			}
@@ -86,6 +80,19 @@ public class CompareStatement {
 			}
 
 			out.write(";\n");
+
+
+			for (Map.Entry<String,DiffForeignKey> entry : this.tableDiff.getForeignKeys().entrySet())
+			{
+				DiffForeignKey key = entry.getValue();
+
+				if (!key.getName().equals("PRIMARY")) // Ignore PRIMARY keys.
+				{
+					this.addAlterTableStatement(out);
+					this.addForeignKey(out, key, key.getOperation());
+					out.write(";\n");
+				}
+			}
 
 			out.write("SET FOREIGN_KEY_CHECKS=1;");
 
@@ -160,7 +167,7 @@ public class CompareStatement {
 			out.write(" FOREIGN KEY (");
 
 			out.write(fkr.getColumnsForSql());
-			out.write(")" );
+			out.write(") " );
 			out.write("REFERENCES `");
 			out.write(fkr.getReferencedTableName());
 			out.write("`");

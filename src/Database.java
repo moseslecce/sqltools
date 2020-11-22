@@ -65,7 +65,10 @@ public class Database
 
 
 			//try (PreparedStatement stmt = conn.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE = 'FOREIGN KEY' and CONSTRAINT_SCHEMA=?");)
-			try (PreparedStatement stmt = conn.prepareStatement("select * from information_schema.key_column_usage where referenced_table_name is not null and table_schema = ?");)		
+			//try (PreparedStatement stmt = conn.prepareStatement("select * from information_schema.key_column_usage where referenced_table_name is not null and table_schema = ?");)		
+			String fkSql = "SELECT tb1.ORDINAL_POSITION, tb1.POSITION_IN_UNIQUE_CONSTRAINT, tb1.CONSTRAINT_NAME, tb1.TABLE_NAME, tb1.COLUMN_NAME, tb1.REFERENCED_TABLE_NAME, tb1.REFERENCED_COLUMN_NAME, tb2.MATCH_OPTION, tb2.UPDATE_RULE, tb2.DELETE_RULE FROM information_schema.`KEY_COLUMN_USAGE` AS tb1 INNER JOIN information_schema.REFERENTIAL_CONSTRAINTS AS tb2 ON tb1.CONSTRAINT_NAME = tb2.CONSTRAINT_NAME WHERE table_schema = ? AND referenced_column_name IS NOT NULL"; // TODO: fix me as the UPDATE_RULE and DELETE_RULE match may not be correct.
+
+			try (PreparedStatement stmt = conn.prepareStatement(fkSql);)
 			{
 				stmt.setString(1, dbName);
 				try (ResultSet rs = stmt.executeQuery();)
@@ -75,6 +78,7 @@ public class Database
 						String tblName = rs.getString("TABLE_NAME");
 						Table t = tables.get(tblName);
 						t.populateForeignKeysFromRS(rs);
+						System.out.println("fks: " + t.getForeignKeys());
 					}
 				}
 			}
