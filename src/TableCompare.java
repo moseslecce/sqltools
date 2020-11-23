@@ -4,18 +4,24 @@ import java.util.HashSet;
 import java.util.Map;
 
 public class TableCompare {
+
+	public static String ACTION_CREATE = "CREATE";
+
 	public static TableDiff compare(Table srcTable, Table destTable)
 	{
 		// iterate through the fields in t1 and see if each one matches (or exists) in t2.
 		TableDiff td = new TableDiff(srcTable.getName());
 
-		if (td.getAutoIncrement() != srcTable.getAutoIncrement())
+		if (destTable == null)
+			td.setAction(TableCompare.ACTION_CREATE);
+
+		if (destTable == null || td.getAutoIncrement() != destTable.getAutoIncrement())
 			td.setAutoIncrement(srcTable.getAutoIncrement());
 
-		if (!destTable.getEngine().equals(srcTable.getEngine()))
-			destTable.setEngine(srcTable.getEngine());
+		if (destTable == null || !destTable.getEngine().equals(srcTable.getEngine()))
+			td.setEngine(srcTable.getEngine());
 
-		if (!destTable.getCollation().equals(srcTable.getCollation()))
+		if (destTable == null || !destTable.getCollation().equals(srcTable.getCollation()))
 			td.setCollation(srcTable.getCollation());
 
 		// Find the different fields (additions, removals and changes)
@@ -25,7 +31,7 @@ public class TableCompare {
 			String key = entry.getKey();
 			Field field = entry.getValue();
 
-			if (destTable.hasField(key))
+			if (destTable != null && destTable.hasField(key))
 			{
 				// If the field exists, check that it's identical.
 				Field field2 = destTable.getField(key);
@@ -39,12 +45,15 @@ public class TableCompare {
 			}
 		}
 
-		for (Map.Entry<String, Field> entry : destTable.getFields().entrySet())
+		if (destTable != null)
 		{
-			String key = entry.getKey();
-			Field field = entry.getValue();
-			if (!srcTable.hasField(key))
-				td.addExtraFields(field); // Adding field: dropme at position: 15 // same position as bingobucks.. overlap.
+			for (Map.Entry<String, Field> entry : destTable.getFields().entrySet())
+			{
+				String key = entry.getKey();
+				Field field = entry.getValue();
+				if (!srcTable.hasField(key))
+					td.addExtraFields(field); // Adding field: dropme at position: 15 // same position as bingobucks.. overlap.
+			}
 		}
 
 		// Find the different keys (additions, removals and changes)
@@ -53,7 +62,7 @@ public class TableCompare {
 		{
 			String keyName = entry.getKey();
 			Key key = entry.getValue();
-			if (destTable.hasKey(keyName))
+			if (destTable != null && destTable.hasKey(keyName))
 			{
 				Key key2 = destTable.getKey(keyName);
 				// If the key exists, check that it's identical.
@@ -67,12 +76,15 @@ public class TableCompare {
 			}
 		}
 
-		for (Map.Entry<String, Key> entry : destTable.getKeys().entrySet())
+		if (destTable != null)
 		{
-			String keyName = entry.getKey();
-			Key key = entry.getValue();
-			if (!srcTable.hasKey(keyName))
-				td.addExtraKey(key);
+			for (Map.Entry<String, Key> entry : destTable.getKeys().entrySet())
+			{
+				String keyName = entry.getKey();
+				Key key = entry.getValue();
+				if (!srcTable.hasKey(keyName))
+					td.addExtraKey(key);
+			}
 		}
 
 		// Find the different foreign keys (additions, removals and changes)
@@ -81,7 +93,7 @@ public class TableCompare {
 		{
 			String keyName = entry.getKey();
 			ForeignKey key = entry.getValue();
-			if (destTable.hasForeignKey(keyName))
+			if (destTable != null && destTable.hasForeignKey(keyName))
 			{
 				ForeignKey key2 = destTable.getForeignKey(keyName);
 				// If the key exists, check that it's identical.
@@ -95,12 +107,15 @@ public class TableCompare {
 			}
 		}
 
-		for (Map.Entry<String, ForeignKey> entry : destTable.getForeignKeys().entrySet())
+		if (destTable != null)
 		{
-			String keyName = entry.getKey();
-			ForeignKey key = entry.getValue();
-			if (!srcTable.hasForeignKey(keyName))
-				td.addExtraForeignKey(key);
+			for (Map.Entry<String, ForeignKey> entry : destTable.getForeignKeys().entrySet())
+			{
+				String keyName = entry.getKey();
+				ForeignKey key = entry.getValue();
+				if (!srcTable.hasForeignKey(keyName))
+					td.addExtraForeignKey(key);
+			}
 		}
 
 		return td;
@@ -130,6 +145,15 @@ public class TableCompare {
 		System.out.println("Tables remaining: " + tablesRemaining);
 		
 		ArrayList<CompareStatement> statements = new ArrayList<>();
+
+		for (String tableName : tablesToCreate)
+		{
+			Table t1 = sourceDB.getTable(tableName);
+			TableDiff tdiff = TableCompare.compare(t1, null);
+			CompareStatement cs = new CompareStatement(tdiff);
+			statements.add(cs);
+		}
+
 		for (String tableName : tablesRemaining)
 		{
 			Table t1 = sourceDB.getTable(tableName);

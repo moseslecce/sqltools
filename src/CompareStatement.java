@@ -16,7 +16,16 @@ public class CompareStatement {
 
 	private void addAlterTableStatement(StringWriter out)
 	{
+		out.write("/* Alter table in destination */\n");
 		out.write("ALTER TABLE `");
+		out.write(this.tableDiff.getTableName());
+		out.write("` \n");
+	}
+
+	private void addCreateTableStatement(StringWriter out)
+	{
+		out.write("/* Create table in destination */\n");
+		out.write("CREATE TABLE `");
 		out.write(this.tableDiff.getTableName());
 		out.write("` \n");
 	}
@@ -28,8 +37,10 @@ public class CompareStatement {
 		{
 			out.write("SET FOREIGN_KEY_CHECKS=0;\n");
 
-			out.write("/* Alter table in destination */\n");
-			this.addAlterTableStatement(out);			
+			if (this.tableDiff.getAction() == TableCompare.ACTION_CREATE)
+				this.addCreateTableStatement(out);
+			else
+				this.addAlterTableStatement(out);			
 
 			for (Map.Entry<Integer,DiffField> entry : this.tableDiff.getFields().entrySet())
 			{
@@ -184,20 +195,24 @@ public class CompareStatement {
 	private void _addColumn(StringWriter out, String columnName, String columnType, String fieldType, Integer precision, Integer scale, boolean isNullable, String defaultValue, String afterField, String collation, boolean unsigned, String extra, String operation)
 	{
 		out.write("\t");
-		if (operation == "CHANGE")
+
+		if (this.tableDiff.getAction() != TableCompare.ACTION_CREATE)
 		{
-			out.write("CHANGE `");
-		}
-		else if (operation == "ADD")
-		{
-			out.write("ADD COLUMN `");
-		}
-		else if (operation == "DROP")
-		{
-			out.write("DROP COLUMN `");
-			out.write(columnName);
-			out.write("` ");
-			return;
+			if (operation == "CHANGE")
+			{
+				out.write("CHANGE `");
+			}
+			else if (operation == "ADD")
+			{
+				out.write("ADD COLUMN `");
+			}
+			else if (operation == "DROP")
+			{
+				out.write("DROP COLUMN `");
+				out.write(columnName);
+				out.write("` ");
+				return;
+			}
 		}
 
 		out.write(columnName);

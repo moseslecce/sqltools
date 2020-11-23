@@ -11,6 +11,7 @@ public class TableDiff {
 	private Map<String,DiffField> dropFields; // sorted by the key name.
 	private Map<String,DiffKey> keys;
 	private Map<String,DiffForeignKey> foreignKeys;
+	private String action; // CREATE, ALTER, DROP
 
 	public TableDiff(String tableName)
 	{
@@ -23,6 +24,11 @@ public class TableDiff {
 		this.autoIncrement = null;
 		this.engine = null;
 		this.collation = null;
+	}
+
+	public String getAction()
+	{
+		return this.action;
 	}
 
 	public void setEngine(String val)
@@ -119,5 +125,10 @@ public class TableDiff {
 
 	public String getCollation() {
 		return this.collation;
+	}
+
+	public void setAction(String action) 
+	{
+		this.action = action;
 	}
 }
